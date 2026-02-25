@@ -1,0 +1,22 @@
+{
+    "greeting": "Bonjour",
+    "farewell": {
+        "male": "Au revoir, monsieur",
+        "female": "Au revoir, madame"
+    },
+    "apples": {
+        "zero": "Pas de pommes",
+        "one": "Une pomme",
+        "two": "Deux pommes",
+        "few": "Quelques pommes",
+        "many": "{{count}} pommes",
+        "other": "{{count}} pommes"
+    },
+    "items": {
+        "0": "Aucun article",
+        "1": "Un article",
+        "2": "Deux articles",
+        "5": "Exactement cinq articles",
+        "other": "{{count}} articles"
+    }
+}

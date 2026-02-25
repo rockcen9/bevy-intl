@@ -1,0 +1,22 @@
+{
+    "greeting": "Hello",
+    "farewell": {
+        "male": "Goodbye, sir",
+        "female": "Goodbye, ma'am"
+    },
+    "apples": {
+        "zero": "No apples",
+        "one": "One apple",
+        "two": "A couple of apples",
+        "few": "A few apples",
+        "many": "{{count}} apples",
+        "other": "{{count}} apples"
+    },
+    "items": {
+        "0": "No items",
+        "1": "One item",
+        "2": "Two items",
+        "5": "Exactly five items",
+        "other": "{{count}} items"
+    }
+}

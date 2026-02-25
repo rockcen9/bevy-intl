@@ -801,36 +801,30 @@ impl I18nPartial {
             .or_else(|| {
                 self.fallback_traduction
                     .get(key)
-                    .and_then(|v| (
-                        if let SectionValue::Text(s) = v {
-                            Some(s.clone())
-                        } else {
-                            None
-                        }
-                    ))
+                    .and_then(|v| if let SectionValue::Text(s) = v {
+                        Some(s.clone())
+                    } else {
+                        None
+                    })
             })
     }
 
     fn get_nested_value(&self, key: &str, nested_key: &str) -> Option<String> {
         self.file_traductions
             .get(key)
-            .and_then(|v| (
-                if let SectionValue::Map(m) = v {
-                    m.get(nested_key).cloned()
-                } else {
-                    None
-                }
-            ))
+            .and_then(|v| if let SectionValue::Map(m) = v {
+                m.get(nested_key).cloned()
+            } else {
+                None
+            })
             .or_else(|| {
                 self.fallback_traduction
                     .get(key)
-                    .and_then(|v| (
-                        if let SectionValue::Map(m) = v {
-                            m.get(nested_key).cloned()
-                        } else {
-                            None
-                        }
-                    ))
+                    .and_then(|v| if let SectionValue::Map(m) = v {
+                        m.get(nested_key).cloned()
+                    } else {
+                        None
+                    })
             })
     }
 
