@@ -270,12 +270,20 @@ fn load_bundled_translations() -> (Translations, Vec<String>) {
     match load_bundled_data() {
         Ok(langs) => {
             if langs.is_empty() {
-                // Bundled translations are empty, fall back to filesystem
-                load_filesystem_translations("messages")
-            } else {
-                let locale_list = langs.keys().cloned().collect();
-                (Translations { langs }, locale_list)
+                // Bundled translations are empty.
+                // On WASM we cannot fall back to filesystem (no FS access),
+                // and doing so would cause infinite recursion since
+                // load_filesystem_translations calls load_bundled_translations on WASM.
+                #[cfg(not(target_arch = "wasm32"))]
+                return load_filesystem_translations("messages");
+                #[cfg(target_arch = "wasm32")]
+                {
+                    eprintln!("⚠️ Bundled translations are empty. Set BEVY_INTL_MESSAGES_FOLDER to your translations folder name.");
+                    return create_error_translations();
+                }
             }
+            let locale_list = langs.keys().cloned().collect();
+            (Translations { langs }, locale_list)
         }
         Err(e) => {
             eprintln!("⚠️ Failed to load bundled translations: {}", e);

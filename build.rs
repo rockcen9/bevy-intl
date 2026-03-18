@@ -4,8 +4,7 @@ use serde_json::{ Value, Map };
 use anyhow::Result;
 
 fn main() -> Result<(), Box<dyn Error>> {
-    // Try to find messages directory in the consuming project
-    let messages_dir = find_messages_directory()?;
+    let messages_dir = find_messages_directory("messages")?;
     let out_path = Path::new(&std::env::var("OUT_DIR")?).join("all_translations.json");
 
     // Always create the file, even if empty, so include_str! works
@@ -56,37 +55,20 @@ fn build_translations(messages_dir: &Path) -> Result<Value> {
     Ok(Value::Object(translations))
 }
 
-fn find_messages_directory() -> Result<PathBuf> {
-    // First try the workspace root (if CARGO_TARGET_DIR is set)
-    if let Ok(target_dir) = std::env::var("CARGO_TARGET_DIR") {
-        let workspace_root = Path::new(&target_dir)
-            .parent()
-            .ok_or_else(|| anyhow::anyhow!("Invalid target dir"))?;
-        let messages_path = workspace_root.join("messages");
-        if messages_path.exists() {
-            return Ok(messages_path);
+fn find_messages_directory(folder_name: &str) -> Result<PathBuf> {
+    // Walk up from OUT_DIR — it's always rooted inside the consuming project's
+    // target/ folder, so ascending will eventually reach the project root.
+    // e.g. .../bevy_fishing_horror_jam/target/debug/build/bevy-intl-xxx/out/
+    if let Ok(out_dir) = std::env::var("OUT_DIR") {
+        let mut current = PathBuf::from(out_dir);
+        while current.pop() {
+            let candidate = current.join(folder_name);
+            if candidate.exists() && candidate.is_dir() {
+                return Ok(candidate);
+            }
         }
     }
 
-    // Try current working directory
-    let cwd_messages = Path::new("messages");
-    if cwd_messages.exists() {
-        return Ok(cwd_messages.to_path_buf());
-    }
-
-    // Try parent directories up to root
-    let mut current = std::env::current_dir()?;
-    loop {
-        let messages_path = current.join("messages");
-        if messages_path.exists() {
-            return Ok(messages_path);
-        }
-
-        if !current.pop() {
-            break;
-        }
-    }
-
-    // Fallback to messages in current directory (even if it doesn't exist)
-    Ok(Path::new("messages").to_path_buf())
+    // Fallback: folder relative to CWD (works when building bevy-intl itself)
+    Ok(PathBuf::from(folder_name))
 }
