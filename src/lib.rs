@@ -372,6 +372,9 @@ fn load_translation_from_fs(messages_folder: &str) -> std::io::Result<LangMap> {
 
     for folder_entry in fs::read_dir(message_dir)? {
         let folder = folder_entry?;
+        if !folder.file_type()?.is_dir() {
+            continue;
+        }
         let lang_code = folder.file_name().to_string_lossy().to_string();
         let mut file_map = HashMap::new();
 
