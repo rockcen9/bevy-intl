@@ -18,7 +18,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     let translations = build_translations(&messages_dir)?;
     fs::write(out_path, serde_json::to_string_pretty(&translations)?)?;
 
-    println!("cargo:rerun-if-changed=messages");
+    // Track the messages dir we ACTUALLY found (an absolute path inside the
+    // consuming project), not a bare "messages" — a relative path resolves
+    // against bevy-intl's own crate dir, which never changes, so cargo would
+    // never re-run this script when the consumer edits its translations.
+    // build_translations() also emits rerun-if-changed for each subdir/file so
+    // content edits (not just added/removed files) invalidate the bundle.
+    println!("cargo:rerun-if-changed={}", messages_dir.display());
     Ok(())
 }
 
@@ -31,6 +37,9 @@ fn build_translations(messages_dir: &Path) -> Result<Value> {
             continue;
         }
 
+        // Re-run when a language folder gains/loses files.
+        println!("cargo:rerun-if-changed={}", lang_dir.path().display());
+
         let lang_code = lang_dir.file_name().to_string_lossy().to_string();
         let mut translation_files = Map::new();
 
@@ -39,6 +48,9 @@ fn build_translations(messages_dir: &Path) -> Result<Value> {
             let file_path = file.path(); // Store the path to extend its lifetime
 
             if let Some("json") = file_path.extension().and_then(|e| e.to_str()) {
+                // Re-run when an individual translation file's contents change.
+                println!("cargo:rerun-if-changed={}", file_path.display());
+
                 let file_stem = file_path
                     .file_stem()
                     .and_then(|s| s.to_str())
